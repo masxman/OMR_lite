@@ -40,7 +40,10 @@ def get_student(reg_no):
                 req = urllib.request.Request(
                     webhook_url, 
                     data=json_lib.dumps(payload).encode('utf-8'),
-                    headers={'Content-Type': 'application/json'}
+                    headers={
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                    }
                 )
                 urllib.request.urlopen(req, timeout=2) # Keep timeout extremely short to not block response
             except Exception as e:
