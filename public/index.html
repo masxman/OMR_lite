@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCA Results Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>MCA Score & Rank Portal</h1>
+            <p>Enter your registration number to view your official score and predicted rank range.</p>
+        </header>
+
+        <main>
+            <div class="glass-panel search-panel">
+                <form id="search-form">
+                    <input type="text" id="reg-input" placeholder="Enter Registration Number" autocomplete="off" required>
+                    <button type="submit" id="search-btn">Check Results</button>
+                </form>
+                <div class="loader" id="loader"></div>
+            </div>
+
+            <div class="glass-panel result-panel hidden" id="result-panel">
+                <div class="result-header">
+                    <h2>Student Dashboard</h2>
+                    <span class="badge">Verified</span>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">Registration Number</span>
+                        <span class="stat-value highlight" id="res-reg">--</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Total Score</span>
+                        <span class="stat-value" id="res-score">--</span>
+                    </div>
+                    <div class="stat-box full-width">
+                        <span class="stat-label">Predicted Rank Range</span>
+                        <span class="stat-value rank" id="res-rank">--</span>
+                    </div>
+                </div>
+
+                
+                <p class="disclaimer">* Rank range is calculated by sorting the official current-year scores of all participating students.</p>
+            </div>
+
+            <div class="error-message hidden" id="error-message">
+                <p>⚠️ Registration number not found. Please check and try again.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
