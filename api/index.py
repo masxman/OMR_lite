@@ -21,10 +21,11 @@ if os.path.exists(CSV_PATH):
 
 import time
 
-# Simple best-effort rate limiter (works per Vercel container)
+# Simple best-effort rate limiter with penalty
 ip_tracker = {}
 RATE_LIMIT_TRIES = 3
-RATE_LIMIT_WINDOW = 60 # seconds
+RATE_LIMIT_WINDOW = 60 # seconds to trigger penalty
+PENALTY_COOLDOWN = 300 # 5 minutes penalty
 
 @app.route('/api/student/<reg_no>', methods=['GET'])
 def get_student(reg_no):
@@ -37,16 +38,25 @@ def get_student(reg_no):
         client_ip = client_ip.split(',')[0].strip()
         current_time = time.time()
         
-        # Clean old IP records
-        if client_ip in ip_tracker:
-            ip_tracker[client_ip] = [t for t in ip_tracker[client_ip] if current_time - t < RATE_LIMIT_WINDOW]
+        if client_ip not in ip_tracker:
+            ip_tracker[client_ip] = {'timestamps': [], 'penalty_until': 0}
             
-            if len(ip_tracker[client_ip]) >= RATE_LIMIT_TRIES:
-                return jsonify({"error": "Rate limit exceeded. Please wait 60 seconds."}), 429
-                
-            ip_tracker[client_ip].append(current_time)
-        else:
-            ip_tracker[client_ip] = [current_time]
+        record = ip_tracker[client_ip]
+        
+        # Check if they are currently serving a penalty
+        if current_time < record['penalty_until']:
+            remaining = int(record['penalty_until'] - current_time)
+            return jsonify({"error": f"Rate limit exceeded. Try again in {remaining} seconds."}), 429
+            
+        # Clean old timestamps outside the window
+        record['timestamps'] = [t for t in record['timestamps'] if current_time - t < RATE_LIMIT_WINDOW]
+        
+        # If they hit the limit, apply the 5 minute penalty
+        if len(record['timestamps']) >= RATE_LIMIT_TRIES:
+            record['penalty_until'] = current_time + PENALTY_COOLDOWN
+            return jsonify({"error": "Spam detected. You have been timed out for 5 minutes."}), 429
+            
+        record['timestamps'].append(current_time)
         
     if reg_no in student_data:
         info = student_data[reg_no]
