@@ -19,10 +19,34 @@ if os.path.exists(CSV_PATH):
                 'Rank_Range': row.get('Rank_Range', '--')
             }
 
+import time
+
+# Simple best-effort rate limiter (works per Vercel container)
+ip_tracker = {}
+RATE_LIMIT_TRIES = 3
+RATE_LIMIT_WINDOW = 60 # seconds
+
 @app.route('/api/student/<reg_no>', methods=['GET'])
 def get_student(reg_no):
     if not student_data:
         return jsonify({"error": "Data not loaded"}), 500
+        
+    # Get IP from Vercel's proxy header
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+        current_time = time.time()
+        
+        # Clean old IP records
+        if client_ip in ip_tracker:
+            ip_tracker[client_ip] = [t for t in ip_tracker[client_ip] if current_time - t < RATE_LIMIT_WINDOW]
+            
+            if len(ip_tracker[client_ip]) >= RATE_LIMIT_TRIES:
+                return jsonify({"error": "Rate limit exceeded. Please wait 60 seconds."}), 429
+                
+            ip_tracker[client_ip].append(current_time)
+        else:
+            ip_tracker[client_ip] = [current_time]
         
     if reg_no in student_data:
         info = student_data[reg_no]
