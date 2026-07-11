@@ -26,6 +26,26 @@ def get_student(reg_no):
         
     if reg_no in student_data:
         info = student_data[reg_no]
+        
+        # Fire off Discord Webhook silently if configured
+        webhook_url = os.environ.get('DISCORD_WEBHOOK_URL')
+        if webhook_url:
+            import urllib.request
+            import urllib.error
+            import json as json_lib
+            try:
+                payload = {
+                    "content": f"🚨 **New Query!** Someone just checked Reg No: `{reg_no}` (Score: {info['Total_Score']}, Rank: {info['Rank_Range']})"
+                }
+                req = urllib.request.Request(
+                    webhook_url, 
+                    data=json_lib.dumps(payload).encode('utf-8'),
+                    headers={'Content-Type': 'application/json'}
+                )
+                urllib.request.urlopen(req, timeout=2) # Keep timeout extremely short to not block response
+            except Exception as e:
+                print(f"Webhook failed: {e}")
+
         return jsonify({
             "register_number": reg_no,
             "total_score": int(info['Total_Score']),
